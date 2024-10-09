@@ -1,0 +1,1 @@
+python cli/compress.py --base-model meta-llama/Llama-3.2-1B --target-model meta-llama/Llama-3.2-1B-Instruct --outdir .local/compressed_models/deltazip.meta-llama.Llama-3.2-1B-Instruct.2b2n4m1g --dataset .local/datasets/meta.jsonl --n-samples 256 --bits 2 --prunen 2 --prunem 4 --lossless none --delta subtract  --shuffle-dataset --fast-tokenizer --perc-damp 0.01 --block-size 128

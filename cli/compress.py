@@ -79,6 +79,8 @@ def main(args):
             random.shuffle(examples)
         examples = examples[: args.n_samples]
     examples = [tokenizer(x) for x in examples]
+    target_model = target_model.cuda()
+    
     if args.base_model != "" and args.delta != "":
         target_model.lossy_compress(
             examples,
@@ -172,7 +174,7 @@ if __name__ == "__main__":
     parser.add_argument("--prunen", type=int, default=0)
     parser.add_argument("--prunem", type=int, default=0)
     parser.add_argument(
-        "--lossless", type=str, default="gdeflate", choices=["gdeflate"]
+        "--lossless", type=str, default="gdeflate", choices=["gdeflate", "none"]
     )
     parser.add_argument("--delta", type=str, choices=["subtract", "xor"], default="")
     parser.add_argument("--sym", action="store_true")

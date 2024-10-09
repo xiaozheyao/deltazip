@@ -32,9 +32,14 @@ from ..nn_modules._fused_base import FusedBaseAttentionModule, FusedBaseMLPModul
 from ..core.quant import Quantizer
 from ..core.sparsegpt import SparseGPT
 from ..utils.data_utils import collate_data
-from ..lossless.compressor import LosslessCompressor
 from ..nn_modules.qlinear_cuda import QuantLinear
 from deltazip.modeling._utils import deltazip_post_init
+
+try:
+    from ..lossless.compressor import LosslessCompressor
+except ImportError:
+    LosslessCompressor = None
+    print("LosslessCompressor not found")
 
 triton_has_warmup = False
 NUM_DEBUG_LAYER = 5
@@ -297,8 +302,12 @@ class BaseDeltaZipModelForCausalLM(nn.Module, PushToHubMixin):
                             inp = kwargs[kwarg_name]
                             break
                 layer_inputs.append(move_to_device(inp, self.data_device))
-                attention_masks.append(
-                    kwargs["attention_mask"].to(self.data_device))
+                
+                if kwargs["attention_mask"] is not None:
+                    attention_masks.append(kwargs["attention_mask"].to(self.data_device))
+                else:
+                    attention_masks.append(None)
+                
                 if (pos_ids := kwargs.get("position_ids", None)) is not None:
                     position_ids.append(move_to_device(
                         pos_ids, self.data_device))
