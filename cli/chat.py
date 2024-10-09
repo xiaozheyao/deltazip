@@ -37,10 +37,7 @@ def chat(base_model:str, model_path: str):
     )
     delta_model = delta_model.half()
     for name, param in base_model.model.named_parameters():
-        if any([kw in name for kw in ignore_keywords]):
-            #delta_model.model.state_dict()[name].copy_(param)
-            pass
-        else:
+        if not any([kw in name for kw in ignore_keywords]):
             delta_model.model.state_dict()[name].copy_(
                 param + delta_model.model.state_dict()[name]
             )
@@ -75,6 +72,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-model", type=str, help="Location of model")
-    parser.add_argument("--model-path", type=str, help="Location of model")
+    parser.add_argument("--delta", type=str, help="Location of model")
     args = parser.parse_args()
-    chat(args.base_model, args.model_path)
+    chat(args.base_model, args.delta)

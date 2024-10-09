@@ -1,5 +1,5 @@
 import torch
-from torch.cuda.amp import custom_fwd
+from torch.amp import custom_fwd
 
 import triton
 import triton.language as tl
@@ -157,7 +157,7 @@ def quant_bmm_248_kernel(
 
 class QuantLinearFunction(torch.autograd.Function):
     @staticmethod
-    @custom_fwd
+    @custom_fwd(device_type='cuda')
     def forward(ctx, input, qweight, scales, qzeros, g_idx, bits, maxq):
         output = quant_bmm_248(input, qweight, scales, qzeros, g_idx, bits, maxq)
         ctx.save_for_backward(qweight, scales, qzeros, g_idx)
@@ -211,7 +211,7 @@ def quant_bmm_248(input, qweight, scales, qzeros, g_idx, bits, maxq):
 
 class BatchedQuantLinearInferenceOnlyFunction(torch.autograd.Function):
     @staticmethod
-    @custom_fwd(cast_inputs=torch.float16)
+    @custom_fwd(cast_inputs=torch.float16, device_type='cuda')
     def forward(ctx, input, qweight, scales, qzeros, g_idx, bits, maxq):
         output = quant_bmm_248(input, qweight, scales, qzeros, g_idx, bits, maxq)
         return output

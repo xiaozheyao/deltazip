@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Union
 from dataclasses import dataclass, field, fields
 from transformers.utils.hub import PushToHubMixin
 from safetensors.numpy import save_file as safe_save
+from safetensors.torch import save_file as safe_torch_save
 from accelerate.hooks import remove_hook_from_module
 from transformers import AutoConfig, AutoModelForCausalLM, PreTrainedModel
 from transformers.modeling_utils import no_init_weights
@@ -624,14 +625,21 @@ class BaseDeltaZipModelForCausalLM(nn.Module, PushToHubMixin):
                 tensor_shapes,
                 tensors_dtype,
             ) = lossless_compressor.compress_state_dict(state_dict)
-        safe_save(
-            tensor_dict=state_dict,
-            filename=join(save_dir, model_save_name),
-            metadata={
-                "dtype": json.dumps(tensors_dtype),
-                "shape": json.dumps(tensor_shapes),
-            },
-        )
+            safe_save(
+                tensor_dict=state_dict,
+                filename=join(save_dir, model_save_name),
+                metadata={
+                    "dtype": json.dumps(tensors_dtype),
+                    "shape": json.dumps(tensor_shapes),
+                },
+            )
+        else:
+            # we use safe_torch_save to save model, since it is not losslessly compressed
+            safe_torch_save(
+                tensors=state_dict,
+                filename=join(save_dir, model_save_name),
+            )
+        
         self.model.config.save_pretrained(save_dir)
         self.compress_config.save_pretrained(save_dir)
 
